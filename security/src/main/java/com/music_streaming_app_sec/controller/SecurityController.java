@@ -8,10 +8,12 @@ import com.music_streaming_app_sec.exceptions.UnauthorizedException;
 import com.music_streaming_app_sec.exceptions.UserAlreadyExistsException;
 import com.music_streaming_app_sec.service.AuthenticationService;
 import com.music_streaming_app_sec.service.RefreshTokenService;
+import com.music_streaming_app_sec.service.TokenBlacklistService;
+import com.music_streaming_app_sec.util.JwtUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -21,18 +23,20 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class SecurityController {
 
-    private final AuthenticationService service;
+    private final AuthenticationService authenticationService;
     private final RefreshTokenService tokenService;
+    private final TokenBlacklistService tokenBlacklistService;
+    private final JwtUtils jwtUtils;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody DtoUserCredentialsRequest request) {
-        service.register(request);
+        authenticationService.register(request);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PostMapping("/login")
     public ResponseEntity<DtoJwtResponse> authenticate(@RequestBody DtoUserCredentialsRequest request) {
-        return service.authenticate(request);
+        return authenticationService.authenticate(request);
     }
 
     @PostMapping("/refresh")
@@ -40,18 +44,12 @@ public class SecurityController {
         return tokenService.refreshToken(request);
     }
 
-    //This is also
-    @GetMapping("/securedAdm")
-    @PreAuthorize("hasAnyRole('ADMIN')")
-    public String securedAdminEndpoint() {
-        return "this is secured method for Admin role";
-    }
-
-    //Not working one
-    @GetMapping("/securedUser")
-    @PreAuthorize("hasAnyRole('USER')")
-    public String securedUserEndpoint() {
-        return "this is secured method for User role";
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(HttpServletRequest request) {
+        String token = jwtUtils.extractTokenFromRequest(request);
+        System.out.println("extracted token is " + token);
+        tokenBlacklistService.addToBlackList(token);
+        return ResponseEntity.ok().build();
     }
 
     @ExceptionHandler

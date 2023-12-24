@@ -10,18 +10,12 @@ import lombok.RequiredArgsConstructor;
 @NoArgsConstructor(force = true)
 @RequiredArgsConstructor
 @Entity
-@Table(name = "roles")
-public class Role {
+@Table(name = "token_blacklist")
+public class BlockedTokens {
     @Id
     @GeneratedValue
     private long id;
-
+    @Column(length = 500)
     @NonNull
-    @Column(nullable = false)
-    private String name;
-
-    @Override
-    public String toString() {
-        return this.name;
-    }
+    private String token;
 }

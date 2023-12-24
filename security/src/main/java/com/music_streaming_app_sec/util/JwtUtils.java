@@ -6,6 +6,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,14 @@ public class JwtUtils {
         return (username.equals(user.getUsername()) && !isTokenExpired(token));
     }
 
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        final String authHeader = request.getHeader("Authorization");
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return null;
+        }
+        return authHeader.substring(7).trim();
+    }
+
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
@@ -61,11 +70,12 @@ public class JwtUtils {
         return Jwts.builder()
                 .setClaims(extraClaims)
                 .setHeaderParam("typ", "JWT")
-                .claim("id", user.getId())
-                .claim("roles", user.getRoles())
+                .setSubject(String.format("%s", user.getEmail()))
+                .setIssuer("Music-streaming-app")
+                .claim("roles", user.getRoles().toString())
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + JWT_EXPIRES_IN))
-                .signWith(getSignInKey(), SignatureAlgorithm.HS256)
+                .signWith(getSignInKey(), SignatureAlgorithm.HS512)
                 .compact();
     }
 

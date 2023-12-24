@@ -1,6 +1,7 @@
 package com.music_streaming_app_sec.auth;
 
 import com.music_streaming_app_sec.entity.User;
+import com.music_streaming_app_sec.service.TokenBlacklistService;
 import com.music_streaming_app_sec.util.JwtUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -23,6 +24,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtUtils jwtUtils;
     private final UserDetailsService userDetailsService;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Override
     protected void doFilterInternal(
@@ -37,6 +39,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         jwtToken = authHeader.substring(7).trim();
+        if (tokenBlacklistService.isBlacklisted(jwtToken)) {
+            filterChain.doFilter(request, response);
+            return;
+        }
         userEmail = jwtUtils.extractUsername(jwtToken);
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             User user = (User) userDetailsService.loadUserByUsername(userEmail);
