@@ -11,6 +11,7 @@ import com.music_streaming_app_sec.service.RefreshTokenService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -37,6 +38,20 @@ public class SecurityController {
     @PostMapping("/refresh")
     public ResponseEntity<DtoJwtResponse> refreshToken(@RequestBody DtoRefreshTokenRequest request) {
         return tokenService.refreshToken(request);
+    }
+
+    //This is also
+    @GetMapping("/securedAdm")
+    @PreAuthorize("hasAnyRole('ADMIN')")
+    public String securedAdminEndpoint() {
+        return "this is secured method for Admin role";
+    }
+
+    //Not working one
+    @GetMapping("/securedUser")
+    @PreAuthorize("hasAnyRole('USER')")
+    public String securedUserEndpoint() {
+        return "this is secured method for User role";
     }
 
     @ExceptionHandler

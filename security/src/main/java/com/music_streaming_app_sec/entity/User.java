@@ -1,10 +1,12 @@
 package com.music_streaming_app_sec.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -21,9 +23,9 @@ public class User implements UserDetails {
     @Id
     @GeneratedValue
     private long id;
-
     @Column(unique = true)
     private String email;
+    @JsonIgnore
     private String password;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -37,8 +39,15 @@ public class User implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         Set<GrantedAuthority> authorities = new HashSet<>();
-        roles.forEach(e -> authorities.add(new SimpleGrantedAuthority(e.getName().toString())));
+        roles.forEach(e -> authorities.add(new SimpleGrantedAuthority(e.getName())));
         return authorities;
+    }
+
+    public void addRole(Role role) {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        this.roles.add(role);
     }
 
     @Override
