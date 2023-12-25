@@ -1,9 +1,13 @@
 package com.music_streaming_app_sec.service.impl;
 
+import com.music_streaming_app_sec.dto.DtoRoleActionsRequest;
+import com.music_streaming_app_sec.entity.Role;
 import com.music_streaming_app_sec.entity.User;
 import com.music_streaming_app_sec.repository.UserRepository;
+import com.music_streaming_app_sec.service.RoleService;
 import com.music_streaming_app_sec.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -15,22 +19,42 @@ import java.util.Optional;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RoleService roleService;
 
+    @Override
     public UserDetails loadUserByUsername(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         return userOpt.orElseThrow(() -> new UsernameNotFoundException("User with email = " + email + " not found"));
     }
 
+    @Override
     public void save(User user) {
         userRepository.save(user);
     }
 
-    public UserDetails findByEmail(String email) {
-        return loadUserByUsername(email);
-    }
-
+    @Override
     public boolean isUserExistsByEmail(String email) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         return userOpt.isPresent();
+    }
+
+    @Override
+    public ResponseEntity<?> addRole(DtoRoleActionsRequest request) {
+        User user = (User) loadUserByUsername(request.getEmail());
+        Role role = new Role(request.getRole());
+        roleService.save(role);
+        user.addRole(role);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
+    }
+
+    @Override
+    public ResponseEntity<?> deleteRole(DtoRoleActionsRequest request) {
+        User user = (User) loadUserByUsername(request.getEmail());
+        Role role = roleService.findByName(request.getRole());
+        user.deleteRole(role);
+        roleService.delete(role);
+        userRepository.save(user);
+        return ResponseEntity.ok().build();
     }
 }

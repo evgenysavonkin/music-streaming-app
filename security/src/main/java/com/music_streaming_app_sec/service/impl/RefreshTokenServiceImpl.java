@@ -24,6 +24,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     private final UserService userService;
     private final JwtUtils jwtUtils;
 
+    @Override
     public RefreshToken createRefreshToken(String username) {
         RefreshToken refreshToken = RefreshToken.builder()
                 .user((User) userService.loadUserByUsername(username))
@@ -33,11 +34,13 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return tokenRepository.save(refreshToken);
     }
 
+    @Override
     public RefreshToken findByToken(String token) {
         return tokenRepository.findByToken(token)
                 .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"));
     }
 
+    @Override
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             tokenRepository.delete(token);
@@ -46,6 +49,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
         return token;
     }
 
+    @Override
     public ResponseEntity<DtoJwtResponse> refreshToken(DtoRefreshTokenRequest request) {
         return ResponseEntity.ok(
                 Stream.of(findByToken(request.getToken()))
@@ -60,5 +64,10 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
                         }).findFirst()
                         .orElseThrow(() -> new EntityNotFoundException("Refresh token not found"))
         );
+    }
+
+    @Override
+    public void delete(User user) {
+        tokenRepository.deleteByUserId(user.getId());
     }
 }

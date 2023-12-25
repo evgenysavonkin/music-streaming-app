@@ -2,6 +2,7 @@ package com.music_streaming_app_sec.controller;
 
 import com.music_streaming_app_sec.dto.DtoJwtResponse;
 import com.music_streaming_app_sec.dto.DtoRefreshTokenRequest;
+import com.music_streaming_app_sec.dto.DtoRoleActionsRequest;
 import com.music_streaming_app_sec.dto.DtoUserCredentialsRequest;
 import com.music_streaming_app_sec.exceptions.ExceptionResponse;
 import com.music_streaming_app_sec.exceptions.UnauthorizedException;
@@ -9,11 +10,13 @@ import com.music_streaming_app_sec.exceptions.UserAlreadyExistsException;
 import com.music_streaming_app_sec.service.AuthenticationService;
 import com.music_streaming_app_sec.service.RefreshTokenService;
 import com.music_streaming_app_sec.service.TokenBlacklistService;
-import com.music_streaming_app_sec.util.JwtUtils;
+import com.music_streaming_app_sec.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
@@ -26,12 +29,11 @@ public class SecurityController {
     private final AuthenticationService authenticationService;
     private final RefreshTokenService tokenService;
     private final TokenBlacklistService tokenBlacklistService;
-    private final JwtUtils jwtUtils;
+    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody DtoUserCredentialsRequest request) {
-        authenticationService.register(request);
-        return new ResponseEntity<>(HttpStatus.OK);
+        return authenticationService.register(request);
     }
 
     @PostMapping("/login")
@@ -45,11 +47,21 @@ public class SecurityController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout(HttpServletRequest request) {
-        String token = jwtUtils.extractTokenFromRequest(request);
-        System.out.println("extracted token is " + token);
-        tokenBlacklistService.addToBlackList(token);
-        return ResponseEntity.ok().build();
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<?> logout(HttpServletRequest request, Authentication authentication) {
+        return tokenBlacklistService.logout(request, authentication);
+    }
+
+    @PostMapping("/add_role")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> addRole(@RequestBody DtoRoleActionsRequest request) {
+        return userService.addRole(request);
+    }
+
+    @PostMapping("/delete_role")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> deleteRole(@RequestBody DtoRoleActionsRequest request) {
+        return userService.deleteRole(request);
     }
 
     @ExceptionHandler

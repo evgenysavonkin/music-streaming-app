@@ -8,7 +8,6 @@ import java.util.Set;
 
 @Component
 public class UserConverter {
-
     public User toUser(String email, String password, Set<Role> roles) {
         return User.builder()
                 .email(email)

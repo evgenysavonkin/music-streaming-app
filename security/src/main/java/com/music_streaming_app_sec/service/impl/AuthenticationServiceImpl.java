@@ -17,7 +17,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,19 +29,20 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final UserConverter userConverter;
     private final RefreshTokenService refreshTokenService;
 
-    @Transactional
-    public void register(DtoUserCredentialsRequest registerRequest) {
+    @Override
+    public ResponseEntity<?> register(DtoUserCredentialsRequest registerRequest) {
         if (userService.isUserExistsByEmail(registerRequest.getEmail())) {
             throw new UserAlreadyExistsException(registerRequest.getEmail());
         }
         User user = userConverter.toUser(registerRequest.getEmail(),
                 passwordEncoder.encode(registerRequest.getPassword()), registerRequest.getRoles());
         userService.save(user);
+        return ResponseEntity.ok().build();
     }
 
-
+    @Override
     public ResponseEntity<DtoJwtResponse> authenticate(DtoUserCredentialsRequest authRequest) {
-        User user = (User) userService.findByEmail(authRequest.getEmail());
+        User user = (User) userService.loadUserByUsername(authRequest.getEmail());
         if (passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
             authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
@@ -51,7 +51,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     )
             );
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(authRequest.getEmail());
-
             String jwtToken = jwtUtils.generateToken(user);
             return ResponseEntity.ok()
                     .header("Authorization", "Bearer " + jwtToken)

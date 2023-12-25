@@ -15,9 +15,20 @@ public class RoleServiceImpl implements RoleService {
 
     private final RoleRepository repository;
 
+    @Override
     public Role findByName(String name) {
         Optional<Role> roleOptional = repository.findByName(name);
         return roleOptional.orElseThrow(() ->
                 new EntityNotFoundException("Role with name = " + name + " not found"));
+    }
+
+    @Override
+    public void save(Role role) {
+        repository.save(role);
+    }
+
+    @Override
+    public void delete(Role role) {
+        repository.delete(role);
     }
 }

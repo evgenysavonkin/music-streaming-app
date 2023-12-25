@@ -43,13 +43,6 @@ public class User implements UserDetails {
         return authorities;
     }
 
-    public void addRole(Role role) {
-        if (roles == null) {
-            roles = new HashSet<>();
-        }
-        this.roles.add(role);
-    }
-
     @Override
     public String getUsername() {
         return email;
@@ -73,5 +66,19 @@ public class User implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    public void addRole(Role role) {
+        if (roles == null) {
+            roles = new HashSet<>();
+        }
+        this.roles.add(role);
+    }
+
+    public void deleteRole(Role role) {
+        if (roles == null) {
+            return;
+        }
+        roles.remove(role);
     }
 }

@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 public interface AuthenticationService {
     @Transactional
-    void register(DtoUserCredentialsRequest registerRequest);
+    ResponseEntity<?> register(DtoUserCredentialsRequest registerRequest);
 
     ResponseEntity<DtoJwtResponse> authenticate(DtoUserCredentialsRequest authRequest);
 }

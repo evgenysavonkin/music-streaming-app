@@ -7,11 +7,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.Instant;
 
-@Entity
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
+@Entity
+@Table(name = "refresh_token")
 public class RefreshToken {
     @Id
     @GeneratedValue
