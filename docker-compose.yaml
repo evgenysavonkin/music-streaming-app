@@ -13,17 +13,28 @@ services:
       POSTGRES_DB: audio_service_db
     ports:
       - "5433:5432"
-
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d audio_service_db"]
       interval: 5s
       timeout: 5s
       retries: 5
-  back:
-    container_name: back
-    build: ./back
+  core:
+    container_name: music_str_app_core
+    build:
+      context: ./back/core
     ports:
       - "8080:8080"
     depends_on:
       postgres:
         condition: service_healthy
+  security:
+    container_name: music_str_app_security
+    build:
+      context: ./back/security
+    ports:
+      - "8181:8181"
+    depends_on:
+          postgres:
+            condition: service_healthy
+          core:
+            condition: service_healthy
