@@ -1,0 +1,27 @@
+spring:
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  datasource:
+    url: jdbc:postgresql://postgres:5432/audio_service_db
+#    url: jdbc:postgresql://localhost:5432/audio_service_db    # for start Postgres without Docker
+    username: user
+    password: qUu-MAX-7eU-PSW
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: true
+
+springdoc:
+  api-docs.path: /api-docs
+#  swagger-ui:
+#    operationsSorter: method
+
+
+
+
+
